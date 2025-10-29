@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>University Attendance Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="login-container">
+    <img src="university-logo.png" alt="University Logo" class="logo" />
+    <h2>Login to Attendance Portal</h2>
+
+    <input type="email" id="email" placeholder="Enter Email" required />
+    <input type="password" id="password" placeholder="Enter Password" required />
+
+    <button id="loginBtn">Login</button>
+    
+
+    <p id="message"></p>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    // Import Firebase libraries
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } 
+      from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+    // Your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWB6MSM6UplkqEwTb_9YJyjsu0O9aEeLg",
+      authDomain: "university-attendance-695a0.firebaseapp.com",
+      projectId: "university-attendance-695a0",
+      storageBucket: "university-attendance-695a0.appspot.com",
+      messagingSenderId: "7970147480",
+      appId: "1:7970147480:web:2e7849174e7545384a14ed",
+      measurementId: "G-QD0XV33X11"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // Login with Email/Password
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          alert("Login successful!");
+          window.location.href = "dashboard.html";
+        })
+        .catch((error) => {
+          document.getElementById("message").textContent = error.message;
+        });
+    });
+
+    // Login with Google
+    document.getElementById("googleLogin").addEventListener("click", () => {
+      signInWithPopup(auth, provider)
+        .then(() => {
+          alert("Google Login successful!");
+          window.location.href = "dashboard.html";
+        })
+        .catch((error) => {
+          document.getElementById("message").textContent = error.message;
+        });
+    });
+  </script>
+</body>
+</html>
