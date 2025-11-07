@@ -7,69 +7,95 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 
-<body>
+<body class="login-page">
   <div class="login-container">
     <img src="university-logo.png" alt="University Logo" class="logo" />
     <h2>Login to Attendance Portal</h2>
 
     <input type="email" id="email" placeholder="Enter Email" required />
     <input type="password" id="password" placeholder="Enter Password" required />
-
     <button id="loginBtn">Login</button>
-    
 
     <p id="message"></p>
   </div>
 
-  <!-- Firebase SDKs -->
+  <footer class="login-footer">© 2025 University Attendance Management System</footer>
+
   <script type="module">
-    // Import Firebase libraries
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } 
-      from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  // ✅ Import Firebase SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { 
+    getAuth, 
+    signInWithEmailAndPassword 
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { 
+    getFirestore, 
+    doc, 
+    getDoc 
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    // Your Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDWB6MSM6UplkqEwTb_9YJyjsu0O9aEeLg",
-      authDomain: "university-attendance-695a0.firebaseapp.com",
-      projectId: "university-attendance-695a0",
-      storageBucket: "university-attendance-695a0.appspot.com",
-      messagingSenderId: "7970147480",
-      appId: "1:7970147480:web:2e7849174e7545384a14ed",
-      measurementId: "G-QD0XV33X11"
-    };
+  // ✅ Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDWB6MSM6UplkqEwTb_9YJyjsu0O9aEeLg",
+    authDomain: "university-attendance-695a0.firebaseapp.com",
+    projectId: "university-attendance-695a0",
+    storageBucket: "university-attendance-695a0.appspot.com",
+    messagingSenderId: "7970147480",
+    appId: "1:7970147480:web:2e7849174e7545384a14ed",
+    measurementId: "G-QD0XV33X11"
+  };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+  // ✅ Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    // Login with Email/Password
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+  // ✅ Login logic
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("email").value.trim().toLowerCase();
+    const password = document.getElementById("password").value.trim();
+    const message = document.getElementById("message");
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          alert("Login successful!");
-          window.location.href = "dashboard.html";
-        })
-        .catch((error) => {
-          document.getElementById("message").textContent = error.message;
-        });
-    });
+    message.textContent = "";
 
-    // Login with Google
-    document.getElementById("googleLogin").addEventListener("click", () => {
-      signInWithPopup(auth, provider)
-        .then(() => {
-          alert("Google Login successful!");
-          window.location.href = "dashboard.html";
-        })
-        .catch((error) => {
-          document.getElementById("message").textContent = error.message;
-        });
-    });
-  </script>
+    if (!email || !password) {
+      message.textContent = "⚠️ Please fill all fields.";
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log("User logged in:", email);
+
+      // ✅ Firestore Role Verification
+      const userRef = doc(db, "users", email);
+      const userSnap = await getDoc(userRef);
+
+      console.log("Firestore check path:", "users/" + email);
+      console.log("Document exists:", userSnap.exists());
+      console.log("Data returned:", userSnap.data());
+
+      if (userSnap.exists()) {
+        const role = userSnap.data().role?.toLowerCase();
+        if (role === "teacher") {
+          alert("✅ Welcome Teacher!");
+          window.location.href = "dashboard_teacher.html";
+        } else if (role === "student") {
+          alert("✅ Welcome Student!");
+          window.location.href = "dashboard_student.html";
+        } else {
+          message.textContent = "⚠️ Invalid role field in Firestore.";
+        }
+      } else {
+        message.textContent = "❌ User role not found in Firestore. Please contact admin.";
+      }
+
+    } catch (error) {
+      console.error("Login Error:", error.message);
+      message.textContent = "❌ " + error.message;
+    }
+  });
+</script>
+
 </body>
 </html>
